@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electric Field, Force and Dipole Simulator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #111827, #7c3aed);
+      color: white;
+      padding: 22px 32px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 30px;
+    }
+
+    .header p {
+      margin: 8px 0 0 0;
+      opacity: 0.92;
+      font-size: 15px;
+    }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 360px 1fr 330px;
+      gap: 16px;
+      padding: 16px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .controls {
+      overflow-y: auto;
+      max-height: calc(100vh - 120px);
+    }
+
+    h2 {
+      margin: 0 0 14px 0;
+      font-size: 20px;
+    }
+
+    h3 {
+      margin: 16px 0 10px 0;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.15);
+      margin-right: 8px;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 8px;
+    }
+
+    .small-title {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .charge-row {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .charge-label {
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      background: #7c3aed;
+      color: white;
+      padding: 10px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    button:hover {
+      background: #6d28d9;
+    }
+
+    .secondary {
+      background: #2563eb;
+    }
+
+    .secondary:hover {
+      background: #1d4ed8;
+    }
+
+    .danger {
+      background: #ef4444;
+    }
+
+    .danger:hover {
+      background: #dc2626;
+    }
+
+    .graph-panel {
+      padding: 10px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: calc(100vh - 135px);
+      min-height: 620px;
+      display: block;
+      border-radius: 14px;
+      background: white;
+    }
+
+    .value-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .value-card .name {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .value-card .number {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111827;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .force-list {
+      max-height: 250px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #4c1d95;
+    }
+
+    @media (max-width: 1150px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        max-height: none;
+      }
+
+      canvas {
+        height: 620px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>Electric Field, Force and Dipole Simulator</h1>
+      <p>Enter charge values directly in Coulomb, calculate electric field, force, and net dipole moment.</p>
+    </div>
+
+    <div class="main">
+      <div class="panel controls">
+        <h2>Charge Inputs</h2>
+
+        <label>
+          Number of charges
+          <input id="chargeCount" type="number" min="1" max="8" step="1" value="2">
+        </label>
+
+        <button id="generateBtn" class="secondary">Generate Charge Table</button>
+
+        <div class="buttons">
+          <button id="dipolePresetBtn">Dipole</button>
+          <button id="quadrupolePresetBtn">Quadrupole</button>
+        </div>
+
+        <h3>Charges</h3>
+
+        <div class="row-3">
+          <div class="small-title">q (C)</div>
+          <div class="small-title">x (m)</div>
+          <div class="small-title">y (m)</div>
+        </div>
+
+        <div id="chargeRows"></div>
+
+        <h3>Probe/Test Charge</h3>
+
+        <div class="row-2">
+          <label>
+            Probe x (m)
+            <input id="probeX" type="number" step="any" value="0">
+          </label>
+
+          <label>
+            Probe y (m)
+            <input id="probeY" type="number" step="any" value="1">
+          </label>
+        </div>
+
+        <label>
+          Test charge q₀ (C) for force calculation
+          <input id="testCharge" type="number" step="any" value="1e-9">
+        </label>
+
+        <label>
+          Plot range ±x (m)
+          <input id="viewRange" type="number" min="0.5" max="20" step="0.5" value="3">
+        </label>
+
+        <h3>Visualization Options</h3>
+
+        <label>
+          <input id="showColorMap" type="checkbox" checked>
+          Show colorful electric-field strength map
+        </label>
+
+        <label>
+          <input id="showVectorField" type="checkbox" checked>
+          Show electric-field arrows
+        </label>
+
+        <label>
+          <input id="showFieldLines" type="checkbox" checked>
+          Show field lines
+        </label>
+
+        <label>
+          <input id="showForce" type="checkbox" checked>
+          Show force arrows on charges
+        </label>
+
+        <label>
+          <input id="showDipole" type="checkbox" checked>
+          Show net dipole moment arrow
+        </label>
+
+        <div class="buttons">
+          <button id="calculateBtn">Calculate</button>
+          <button id="animateBtn">Animate Field</button>
+          <button id="resetBtn" class="danger">Reset</button>
+          <button id="downloadBtn" class="secondary">Download Plot</button>
+        </div>
+      </div>
+
+      <div class="panel graph-panel">
+        <canvas id="canvas"></canvas>
+      </div>
+
+      <div class="panel values">
+        <h2>Calculated Values</h2>
+
+        <div class="value-card">
+          <div class="name">Electric field at probe point</div>
+          <div class="number" id="fieldValue">--</div>
+        </div>
+
+        <div class="value-card">
+          <div class="name">Force on test charge q₀</div>
+          <div class="number" id="testForceValue">--</div>
+        </div>
+
+        <div class="value-card">
+          <div class="name">Net dipole moment about origin</div>
+          <div class="number" id="dipoleValue">--</div>
+        </div>
+
+        <div class="value-card">
+          <div class="name">Total charge</div>
+          <div class="number" id="totalChargeValue">--</div>
+        </div>
+
+        <div class="value-card">
+          <div class="name">Net force on each charge</div>
+          <div class="number force-list" id="forceList">--</div>
+        </div>
+
+        <div class="note">
+          Charge unit is Coulomb C. For classroom examples, use small values such as 5e-9 C or -5e-9 C. Positive charges are red, negative charges are blue. Dipole moment is p = Σqᵢrᵢ.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const k = 8.9875517923e9;
+
+    const chargeCountInput = document.getElementById("chargeCount");
+    const generateBtn = document.getElementById("generateBtn");
+    const dipolePresetBtn = document.getElementById("dipolePresetBtn");
+    const quadrupolePresetBtn = document.getElementById("quadrupolePresetBtn");
+
+    const chargeRows = document.getElementById("chargeRows");
+
+    const probeXInput = document.getElementById("probeX");
+    const probeYInput = document.getElementById("probeY");
+    const testChargeInput = document.getElementById("testCharge");
+    const viewRangeInput = document.getElementById("viewRange");
+
+    const showColorMapInput = document.getElementById("showColorMap");
+    const showVectorFieldInput = document.getElementById("showVectorField");
+    const showFieldLinesInput = document.getElementById("showFieldLines");
+    const showForceInput = document.getElementById("showForce");
+    const showDipoleInput = document.getElementById("showDipole");
+
+    const calculateBtn = document.getElementById("calculateBtn");
+    const animateBtn = document.getElementById("animateBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    const fieldValue = document.getElementById("fieldValue");
+    const testForceValue = document.getElementById("testForceValue");
+    const dipoleValue = document.getElementById("dipoleValue");
+    const totalChargeValue = document.getElementById("totalChargeValue");
+    const forceList = document.getElementById("forceList");
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let currentData = null;
+    let fieldLines = [];
+    let animationFrame = null;
+    let animating = false;
+    let animationTime = 0;
+
+    const defaultCharges = [
+      { qC: 5e-9, x: -1, y: 0 },
+      { qC: -5e-9, x: 1, y: 0 }
+    ];
+
+    function formatSci(value, unit) {
+      if (!isFinite(value)) return "undefined";
+      if (Math.abs(value) < 1e-30) return "0 " + unit;
+      return value.toExponential(3) + " " + unit;
+    }
+
+    function formatVec(x, y, unit) {
+      const mag = Math.sqrt(x * x + y * y);
+      return "(" + formatSci(x, unit) + ", " + formatSci(y, unit) + ")<br>|value| = " + formatSci(mag, unit);
+    }
+
+    function generateRows(count, preset) {
+      const oldCharges = readCharges(false);
+      chargeRows.innerHTML = "";
+
+      for (let i = 0; i < count; i++) {
+        let c;
+
+        if (preset && preset[i]) {
+          c = preset[i];
+        } else if (oldCharges[i]) {
+          c = {
+            qC: oldCharges[i].q,
+            x: oldCharges[i].x,
+            y: oldCharges[i].y
+          };
+        } else {
+          c = {
+            qC: i % 2 === 0 ? 5e-9 : -5e-9,
+            x: i - Math.floor(count / 2),
+            y: 0
+          };
+        }
+
+        const row = document.createElement("div");
+        row.className = "charge-row";
+
+        row.innerHTML = `
+          <div class="charge-label">Charge ${i + 1}</div>
+          <div class="row-3">
+            <input class="qInput" type="number" step="any" value="${c.qC}">
+            <input class="xInput" type="number" step="any" value="${c.x}">
+            <input class="yInput" type="number" step="any" value="${c.y}">
+          </div>
+        `;
+
+        chargeRows.appendChild(row);
+      }
+
+      const inputs = chargeRows.querySelectorAll("input");
+      inputs.forEach(input => {
+        input.addEventListener("input", calculateAndDraw);
+      });
+
+      calculateAndDraw();
+    }
+
+    function readCharges(showWarning = true) {
+      const rows = chargeRows.querySelectorAll(".charge-row");
+      const charges = [];
+
+      rows.forEach(row => {
+        const qC = parseFloat(row.querySelector(".qInput").value);
+        const x = parseFloat(row.querySelector(".xInput").value);
+        const y = parseFloat(row.querySelector(".yInput").value);
+
+        if (isFinite(qC) && isFinite(x) && isFinite(y)) {
+          charges.push({
+            q: qC,
+            x: x,
+            y: y
+          });
+        }
+      });
+
+      if (showWarning && charges.length === 0) {
+        alert("Please enter at least one valid charge.");
+      }
+
+      return charges;
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      return {
+        width: rect.width,
+        height: rect.height
+      };
+    }
+
+    function getView() {
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      const range = Math.max(0.5, parseFloat(viewRangeInput.value) || 3);
+      const aspect = height / width;
+
+      return {
+        width: width,
+        height: height,
+        xmin: -range,
+        xmax: range,
+        ymin: -range * aspect,
+        ymax: range * aspect,
+        range: range
+      };
+    }
+
+    function worldToScreen(x, y, view) {
+      const sx = (x - view.xmin) / (view.xmax - view.xmin) * view.width;
+      const sy = view.height - (y - view.ymin) / (view.ymax - view.ymin) * view.height;
+      return { x: sx, y: sy };
+    }
+
+    function screenToWorld(sx, sy, view) {
+      const x = view.xmin + sx / view.width * (view.xmax - view.xmin);
+      const y = view.ymin + (view.height - sy) / view.height * (view.ymax - view.ymin);
+      return { x: x, y: y };
+    }
+
+    function fieldAt(x, y, charges, skipIndex = -1) {
+      let Ex = 0;
+      let Ey = 0;
+
+      const soft = Math.max(1e-5, (parseFloat(viewRangeInput.value) || 3) * 0.004);
+
+      for (let i = 0; i < charges.length; i++) {
+        if (i === skipIndex) continue;
+
+        const c = charges[i];
+        const dx = x - c.x;
+        const dy = y - c.y;
+
+        const r2 = dx * dx + dy * dy + soft * soft;
+        const r = Math.sqrt(r2);
+        const invR3 = 1 / (r2 * r);
+
+        Ex += k * c.q * dx * invR3;
+        Ey += k * c.q * dy * invR3;
+      }
+
+      return {
+        Ex: Ex,
+        Ey: Ey,
+        mag: Math.sqrt(Ex * Ex + Ey * Ey)
+      };
+    }
+
+    function forceOnCharges(charges) {
+      const forces = [];
+
+      for (let i = 0; i < charges.length; i++) {
+        let Fx = 0;
+        let Fy = 0;
+
+        for (let j = 0; j < charges.length; j++) {
+          if (i === j) continue;
+
+          const ci = charges[i];
+          const cj = charges[j];
+
+          const dx = ci.x - cj.x;
+          const dy = ci.y - cj.y;
+
+          const r2raw = dx * dx + dy * dy;
+          const r2 = Math.max(r2raw, 1e-12);
+          const r = Math.sqrt(r2);
+          const invR3 = 1 / (r2 * r);
+
+          Fx += k * ci.q * cj.q * dx * invR3;
+          Fy += k * ci.q * cj.q * dy * invR3;
+        }
+
+        forces.push({
+          Fx: Fx,
+          Fy: Fy,
+          mag: Math.sqrt(Fx * Fx + Fy * Fy)
+        });
+      }
+
+      return forces;
+    }
+
+    function netDipoleMoment(charges) {
+      let px = 0;
+      let py = 0;
+      let qTotal = 0;
+
+      charges.forEach(c => {
+        px += c.q * c.x;
+        py += c.q * c.y;
+        qTotal += c.q;
+      });
+
+      return {
+        px: px,
+        py: py,
+        mag: Math.sqrt(px * px + py * py),
+        qTotal: qTotal
+      };
+    }
+
+    function computeResults(charges) {
+      const probeX = parseFloat(probeXInput.value) || 0;
+      const probeY = parseFloat(probeYInput.value) || 0;
+      const testQ = parseFloat(testChargeInput.value) || 0;
+
+      const E = fieldAt(probeX, probeY, charges);
+
+      const testForce = {
+        Fx: testQ * E.Ex,
+        Fy: testQ * E.Ey
+      };
+
+      testForce.mag = Math.sqrt(testForce.Fx * testForce.Fx + testForce.Fy * testForce.Fy);
+
+      const forces = forceOnCharges(charges);
+      const dipole = netDipoleMoment(charges);
+
+      return {
+        probeX: probeX,
+        probeY: probeY,
+        testQ: testQ,
+        E: E,
+        testForce: testForce,
+        forces: forces,
+        dipole: dipole
+      };
+    }
+
+    function updateValuePanel(charges, results) {
+      fieldValue.innerHTML = formatVec(results.E.Ex, results.E.Ey, "N/C");
+      testForceValue.innerHTML = formatVec(results.testForce.Fx, results.testForce.Fy, "N");
+      dipoleValue.innerHTML = formatVec(results.dipole.px, results.dipole.py, "C·m");
+      totalChargeValue.innerHTML = formatSci(results.dipole.qTotal, "C");
+
+      let html = "";
+
+      results.forces.forEach((f, i) => {
+        html +=
+          "<b>Charge " + (i + 1) + ":</b><br>" +
+          "Fx = " + formatSci(f.Fx, "N") + "<br>" +
+          "Fy = " + formatSci(f.Fy, "N") + "<br>" +
+          "|F| = " + formatSci(f.mag, "N") + "<br><br>";
+      });
+
+      forceList.innerHTML = html || "--";
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width, label) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const angle = Math.atan2(dy, dx);
+      const headLength = 10;
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      if (label) {
+        ctx.font = "12px Arial";
+        ctx.fillText(label, x2 + 6, y2 - 6);
+      }
+
+      ctx.restore();
+    }
+
+    function niceStep(rawStep) {
+      const pow = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const f = rawStep / pow;
+
+      if (f < 1.5) return 1 * pow;
+      if (f < 3.5) return 2 * pow;
+      if (f < 7.5) return 5 * pow;
+      return 10 * pow;
+    }
+
+    function drawAxes(view) {
+      ctx.save();
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+
+      const step = niceStep((view.xmax - view.xmin) / 8);
+
+      for (let x = Math.ceil(view.xmin / step) * step; x <= view.xmax; x += step) {
+        const s = worldToScreen(x, 0, view);
+        ctx.beginPath();
+        ctx.moveTo(s.x, 0);
+        ctx.lineTo(s.x, view.height);
+        ctx.stroke();
+      }
+
+      for (let y = Math.ceil(view.ymin / step) * step; y <= view.ymax; y += step) {
+        const s = worldToScreen(0, y, view);
+        ctx.beginPath();
+        ctx.moveTo(0, s.y);
+        ctx.lineTo(view.width, s.y);
+        ctx.stroke();
+      }
+
+      const origin = worldToScreen(0, 0, view);
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      ctx.moveTo(0, origin.y);
+      ctx.lineTo(view.width, origin.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(origin.x, 0);
+      ctx.lineTo(origin.x, view.height);
+      ctx.stroke();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "13px Arial";
+      ctx.fillText("x (m)", view.width - 40, origin.y - 8);
+      ctx.fillText("y (m)", origin.x + 8, 18);
+
+      ctx.restore();
+    }
+
+    function drawColorMap(charges, view) {
+      const block = 10;
+
+      for (let sx = 0; sx < view.width; sx += block) {
+        for (let sy = 0; sy < view.height; sy += block) {
+          const w = screenToWorld(sx + block / 2, sy + block / 2, view);
+          const E = fieldAt(w.x, w.y, charges);
+
+          const logE = Math.log10(E.mag + 1);
+          const intensity = Math.max(0, Math.min(1, logE / 4.5));
+
+          const hue = 250 - 250 * intensity;
+          const lightness = 94 - 34 * intensity;
+
+          ctx.fillStyle = "hsla(" + hue + ", 90%, " + lightness + "%, 0.55)";
+          ctx.fillRect(sx, sy, block + 1, block + 1);
+        }
+      }
+    }
+
+    function drawVectorField(charges, view) {
+      const spacing = 55;
+
+      for (let sx = spacing / 2; sx < view.width; sx += spacing) {
+        for (let sy = spacing / 2; sy < view.height; sy += spacing) {
+          const w = screenToWorld(sx, sy, view);
+          const E = fieldAt(w.x, w.y, charges);
+
+          if (E.mag < 1e-12) continue;
+
+          const ux = E.Ex / E.mag;
+          const uy = E.Ey / E.mag;
+
+          const angle = Math.atan2(uy, ux);
+          const hue = ((angle + Math.PI) / (2 * Math.PI)) * 360;
+
+          const len = 18;
+          const x2 = sx + ux * len;
+          const y2 = sy - uy * len;
+
+          drawArrow(
+            sx - ux * len * 0.4,
+            sy + uy * len * 0.4,
+            x2,
+            y2,
+            "hsla(" + hue + ", 80%, 35%, 0.75)",
+            1.3,
+            ""
+          );
+        }
+      }
+    }
+
+    function computeFieldLines(charges, view) {
+      const lines = [];
+      const range = view.range;
+      const seedRadius = range * 0.035;
+      const stepSize = range * 0.018;
+
+      let sources = charges.filter(c => c.q > 0);
+
+      if (sources.length === 0) {
+        sources = charges.filter(c => c.q < 0);
+      }
+
+      sources.forEach(source => {
+        const chargeScale = Math.abs(source.q) / 1e-9;
+        const seeds = Math.min(40, Math.max(14, Math.round(chargeScale * 2) + 12));
+        const direction = source.q > 0 ? 1 : -1;
+
+        for (let s = 0; s < seeds; s++) {
+          const angle = 2 * Math.PI * s / seeds;
+          let x = source.x + seedRadius * Math.cos(angle);
+          let y = source.y + seedRadius * Math.sin(angle);
+
+          const line = [];
+
+          for (let n = 0; n < 700; n++) {
+            if (x < view.xmin || x > view.xmax || y < view.ymin || y > view.ymax) break;
+
+            let nearCharge = false;
+
+            for (let c of charges) {
+              const dx = x - c.x;
+              const dy = y - c.y;
+              const d = Math.sqrt(dx * dx + dy * dy);
+
+              if (n > 10 && d < seedRadius * 0.9) {
+                nearCharge = true;
+                break;
+              }
+            }
+
+            if (nearCharge) break;
+
+            line.push({ x: x, y: y });
+
+            const E = fieldAt(x, y, charges);
+
+            if (E.mag < 1e-9) break;
+
+            x += direction * E.Ex / E.mag * stepSize;
+            y += direction * E.Ey / E.mag * stepSize;
+          }
+
+          if (line.length > 8) {
+            lines.push({
+              points: line,
+              color: source.q > 0 ? "rgba(239, 68, 68, 0.75)" : "rgba(37, 99, 235, 0.75)"
+            });
+          }
+        }
+      });
+
+      return lines;
+    }
+
+    function drawFieldLines(view) {
+      ctx.save();
+      ctx.lineWidth = 1.5;
+
+      fieldLines.forEach(line => {
+        ctx.strokeStyle = line.color;
+        ctx.beginPath();
+
+        line.points.forEach((p, i) => {
+          const s = worldToScreen(p.x, p.y, view);
+
+          if (i === 0) {
+            ctx.moveTo(s.x, s.y);
+          } else {
+            ctx.lineTo(s.x, s.y);
+          }
+        });
+
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    function drawAnimatedParticles(view) {
+      if (!animating) return;
+
+      ctx.save();
+
+      fieldLines.forEach((line, i) => {
+        if (line.points.length < 10) return;
+
+        const index = Math.floor((animationTime * 1.8 + i * 11) % line.points.length);
+        const p = line.points[index];
+        const s = worldToScreen(p.x, p.y, view);
+
+        ctx.fillStyle = "rgba(17, 24, 39, 0.9)";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 3.2, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+
+      ctx.restore();
+    }
+
+    function drawCharges(charges, view) {
+      charges.forEach((c, i) => {
+        const s = worldToScreen(c.x, c.y, view);
+        const chargeScale = Math.abs(c.q) / 1e-9;
+        const radius = 12 + Math.min(14, Math.sqrt(chargeScale) * 2.6);
+
+        ctx.save();
+
+        ctx.fillStyle = c.q >= 0 ? "#ef4444" : "#2563eb";
+        ctx.strokeStyle = "#111827";
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "white";
+        ctx.font = "bold 15px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(c.q >= 0 ? "+" : "−", s.x, s.y - 2);
+
+        ctx.fillStyle = "#111827";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText("q" + (i + 1) + " = " + c.q.toExponential(2) + " C", s.x, s.y + radius + 5);
+
+        ctx.restore();
+      });
+    }
+
+    function drawProbePoint(results, view) {
+      const s = worldToScreen(results.probeX, results.probeY, view);
+
+      ctx.save();
+
+      ctx.fillStyle = "#111827";
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 7, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "12px Arial";
+      ctx.fillText("Probe point", s.x + 10, s.y - 10);
+
+      ctx.restore();
+    }
+
+    function drawForceArrows(charges, forces, view) {
+      if (charges.length === 0) return;
+
+      const maxF = Math.max(...forces.map(f => f.mag), 1e-30);
+
+      charges.forEach((c, i) => {
+        const f = forces[i];
+
+        if (f.mag < 1e-30) return;
+
+        const s = worldToScreen(c.x, c.y, view);
+        const ux = f.Fx / f.mag;
+        const uy = f.Fy / f.mag;
+
+        const length = 35 + 65 * Math.sqrt(f.mag / maxF);
+
+        const x2 = s.x + ux * length;
+        const y2 = s.y - uy * length;
+
+        drawArrow(s.x, s.y, x2, y2, "#111827", 3, "F" + (i + 1));
+      });
+    }
+
+    function drawDipoleArrow(results, view) {
+      const px = results.dipole.px;
+      const py = results.dipole.py;
+      const mag = Math.sqrt(px * px + py * py);
+
+      if (mag < 1e-30) return;
+
+      const origin = worldToScreen(0, 0, view);
+
+      const ux = px / mag;
+      const uy = py / mag;
+
+      const length = 95;
+
+      const x2 = origin.x + ux * length;
+      const y2 = origin.y - uy * length;
+
+      drawArrow(origin.x, origin.y, x2, y2, "#7c3aed", 4, "p");
+    }
+
+    function drawTitle(view) {
+      ctx.save();
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.fillRect(12, 12, 390, 42);
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText("Electric Field Lines and Force Visualization", 24, 39);
+
+      ctx.restore();
+    }
+
+    function drawScene() {
+      resizeCanvas();
+
+      const view = getView();
+      const charges = currentData.charges;
+      const results = currentData.results;
+
+      ctx.clearRect(0, 0, view.width, view.height);
+
+      if (showColorMapInput.checked) {
+        drawColorMap(charges, view);
+      }
+
+      drawAxes(view);
+
+      if (showVectorFieldInput.checked) {
+        drawVectorField(charges, view);
+      }
+
+      if (showFieldLinesInput.checked) {
+        drawFieldLines(view);
+        drawAnimatedParticles(view);
+      }
+
+      drawCharges(charges, view);
+      drawProbePoint(results, view);
+
+      if (showForceInput.checked) {
+        drawForceArrows(charges, results.forces, view);
+      }
+
+      if (showDipoleInput.checked) {
+        drawDipoleArrow(results, view);
+      }
+
+      drawTitle(view);
+    }
+
+    function calculateAndDraw() {
+      const charges = readCharges();
+      const results = computeResults(charges);
+      const view = getView();
+
+      currentData = {
+        charges: charges,
+        results: results
+      };
+
+      fieldLines = computeFieldLines(charges, view);
+
+      updateValuePanel(charges, results);
+      drawScene();
+    }
+
+    function animationLoop() {
+      if (!animating) return;
+
+      animationTime += 1;
+      drawScene();
+
+      animationFrame = requestAnimationFrame(animationLoop);
+    }
+
+    function toggleAnimation() {
+      animating = !animating;
+
+      if (animating) {
+        animateBtn.textContent = "Stop Animation";
+        animationLoop();
+      } else {
+        animateBtn.textContent = "Animate Field";
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        drawScene();
+      }
+    }
+
+    function resetApp() {
+      animating = false;
+      animateBtn.textContent = "Animate Field";
+
+      chargeCountInput.value = 2;
+      probeXInput.value = 0;
+      probeYInput.value = 1;
+      testChargeInput.value = "1e-9";
+      viewRangeInput.value = 3;
+
+      generateRows(2, defaultCharges);
+    }
+
+    function downloadPlot() {
+      drawScene();
+
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.download = "electric_field_simulator.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }, 100);
+    }
+
+    function setDipolePreset() {
+      chargeCountInput.value = 2;
+
+      generateRows(2, [
+        { qC: 5e-9, x: -1, y: 0 },
+        { qC: -5e-9, x: 1, y: 0 }
+      ]);
+    }
+
+    function setQuadrupolePreset() {
+      chargeCountInput.value = 4;
+
+      generateRows(4, [
+        { qC: 5e-9, x: -1, y: 1 },
+        { qC: -5e-9, x: 1, y: 1 },
+        { qC: -5e-9, x: -1, y: -1 },
+        { qC: 5e-9, x: 1, y: -1 }
+      ]);
+    }
+
+    generateBtn.addEventListener("click", () => {
+      const count = Math.max(1, Math.min(8, parseInt(chargeCountInput.value) || 1));
+      chargeCountInput.value = count;
+      generateRows(count);
+    });
+
+    dipolePresetBtn.addEventListener("click", setDipolePreset);
+    quadrupolePresetBtn.addEventListener("click", setQuadrupolePreset);
+
+    calculateBtn.addEventListener("click", calculateAndDraw);
+    animateBtn.addEventListener("click", toggleAnimation);
+    resetBtn.addEventListener("click", resetApp);
+    downloadBtn.addEventListener("click", downloadPlot);
+
+    [
+      probeXInput,
+      probeYInput,
+      testChargeInput,
+      viewRangeInput,
+      showColorMapInput,
+      showVectorFieldInput,
+      showFieldLinesInput,
+      showForceInput,
+      showDipoleInput
+    ].forEach(input => {
+      input.addEventListener("input", calculateAndDraw);
+      input.addEventListener("change", calculateAndDraw);
+    });
+
+    window.addEventListener("resize", calculateAndDraw);
+
+    generateRows(2, defaultCharges);
+  </script>
+</body>
+</html>
